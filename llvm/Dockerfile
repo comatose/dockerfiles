@@ -1,0 +1,30 @@
+FROM ubuntu:16.04
+
+LABEL maintainer "Boncheol Gu"
+
+# Use package servers located in Korea.
+RUN sed -i "s/archive/kr.archive/g" /etc/apt/sources.list
+
+# Unpack clang installation into this image.
+# ADD http://releases.llvm.org/5.0.0/clang+llvm-5.0.0-linux-x86_64-ubuntu16.04.tar.xz /usr/local/
+ADD clang+llvm-5.0.0-linux-x86_64-ubuntu16.04.tar.xz /usr/local/
+
+RUN cp -rf /usr/local/clang+llvm-5.0.0-linux-x86_64-ubuntu16.04/* /usr/local/
+RUN rm -rf usr/local/clang+llvm-5.0.0-linux-x86_64-ubuntu16.04
+
+# Install packages for minimal useful image.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    binutils \
+    cmake \
+    libstdc++-4.9-dev
+
+RUN apt-get install -y --no-install-recommends unzip
+
+RUN rm -rf /var/lib/apt/lists/*
+
+ADD https://github.com/ninja-build/ninja/releases/download/v1.8.2/ninja-linux.zip /usr/local/bin
+WORKDIR /usr/local/bin
+RUN unzip ninja-linux.zip && rm ninja-linux.zip
+
+WORKDIR /root
