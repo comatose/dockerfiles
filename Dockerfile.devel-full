@@ -1,0 +1,68 @@
+FROM comatose/clang5-ubuntu16.04
+
+LABEL maintainer "Boncheol Gu"
+
+# Install packages for minimal useful image.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    ca-certificates \
+    emacs \
+    git \
+    libnotify4 \
+    libnss3 \
+    libxkbfile1 \
+    libsecret-1-0 \
+    libssl-dev \
+    pkg-config \
+    subversion
+
+WORKDIR /root
+
+# setting up emacs.
+RUN git clone https://github.com/comatose/prelude.git .emacs.d
+
+RUN mkdir src
+WORKDIR /root/src
+
+RUN git clone https://github.com/Andersbakken/rtags
+
+WORKDIR /root/src/rtags
+RUN git checkout -b v2.14 && git submodule init && git submodule update
+RUN cmake -H. -Bbuild -GNinja && cmake --build build
+RUN cmake --build build -- install
+
+RUN apt-get update && apt-get install -y --no-install-recommends apt-transport-https curl gnupg
+
+# Add the vscode debian repo
+RUN curl -sSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | apt-key add -
+RUN echo "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main" > /etc/apt/sources.list.d/vscode.list
+
+RUN apt-get update && apt-get install -y \
+    code \
+    libasound2 \
+    libatk1.0-0 \
+    libcairo2 \
+    libcups2 \
+    libexpat1 \
+    libfontconfig1 \
+    libfreetype6 \
+    libgtk2.0-0 \
+    libpango-1.0-0 \
+    libx11-xcb1 \
+    libxcomposite1 \
+    libxcursor1 \
+    libxdamage1 \
+    libxext6 \
+    libxfixes3 \
+    libxi6 \
+    libxrandr2 \
+    libxrender1 \
+    libxss1 \
+    libxtst6
+
+RUN echo "code --user-data-dir=/root/.vscode" > /usr/local/bin/vscode && chmod +x /usr/local/bin/vscode
+
+# clean up
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /root
