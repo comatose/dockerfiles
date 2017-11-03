@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-xhost +local:docker
+# xhost +local:docker
 
 nvidia-docker run \
               -v /tmp/.X11-unix:/tmp/.X11-unix \
